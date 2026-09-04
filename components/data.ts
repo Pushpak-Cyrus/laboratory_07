@@ -1,9 +1,10 @@
 export const profile = {
-  name: "YOUR NAME",
-  role: "Researcher / builder / curious human",
-  origin: "Replace with your city, country",
-  email: "hello@example.com",
-  availability: "Open to thoughtful collaborations",
+  name: "Pushpak",
+  role: "Builder exploring AI, computer vision, data, and intelligent systems.",
+  email: "kumarpushpak1309@gmail.com",
+  availability: "Open to internships, collaborations, and ambitious problems.",
+  statement: "I use experiments to turn curiosity into useful systems. I care about clear questions, careful data, and work that earns its conclusions.",
+  focus: ["Artificial intelligence", "Computer vision", "Machine learning", "Data systems"],
 };
 
 export const experiments = [
@@ -13,9 +14,9 @@ export const experiments = [
 ];
 
 export const notebookEntries = [
-  { date: "YYYY.MM.DD", title: "A note worth keeping", excerpt: "Replace this with a small observation, question, or useful lesson." },
-  { date: "YYYY.MM.DD", title: "What failed, specifically", excerpt: "The notebook makes process visible — not just polished outcomes." },
-  { date: "YYYY.MM.DD", title: "Signal / noise", excerpt: "A fragment from your ongoing practice." },
+  { date: "IN PROGRESS", title: "Observation before optimization", excerpt: "A useful system begins by seeing the problem clearly enough to ask a better question." },
+  { date: "IN PROGRESS", title: "What failure teaches", excerpt: "Failed experiments are not discarded; they become evidence for the next decision." },
+  { date: "IN PROGRESS", title: "Signal / noise", excerpt: "The practice is separating a compelling idea from an idea that can survive contact with data." },
 ];
 
 export const discoveryNodes = [
