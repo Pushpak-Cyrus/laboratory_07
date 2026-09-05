@@ -90,6 +90,11 @@ export function Laboratory() {
             onEnter={() => setEntered(true)}
             onStatus={() => setStatusOpen(!statusOpen)}
             statusOpen={statusOpen}
+            onCase={() => {
+              setEntered(true);
+              setCaseStudy(true);
+              setHasNavigated(true);
+            }}
           />
         ) : (
           <motion.div
@@ -169,10 +174,12 @@ function Entry({
   onEnter,
   onStatus,
   statusOpen,
+  onCase,
 }: {
   onEnter: () => void;
   onStatus: () => void;
   statusOpen: boolean;
+  onCase: () => void;
 }) {
   return (
     <motion.section
@@ -213,7 +220,7 @@ function Entry({
 
       <div className="entry-grid">
         <aside className="entry-left">
-          <Orbital />
+          <Orbital onCase={onCase} />
 
           <nav className="entry-nav">
             {nav.map((item, index) => (
@@ -299,44 +306,179 @@ function Entry({
   );
 }
 
-function Orbital() {
-  const [active, setActive] = useState("AI");
+type DomainKey = "AI" | "VISION" | "DATA" | "SYSTEMS" | "CREATE";
 
-  const nodes = [
-    "AI",
-    "VISION",
-    "DATA",
-    "SYSTEMS",
-    "CREATE",
-  ];
+type ResearchDomain = {
+  title: string;
+  label: string;
+  description: string;
+  details: string[];
+  status?: string;
+  connection?: string;
+  activeResearch?: string;
+  actionLabel?: string;
+};
+
+const researchDomains: Record<DomainKey, ResearchDomain> = {
+  AI: {
+    title: "AI",
+    label: "INTELLIGENCE / LEARNING SYSTEMS",
+    description:
+      "Exploring how machines can learn patterns, make predictions, and assist human reasoning.",
+    details: ["MACHINE LEARNING", "EXPERIMENTATION", "MODEL THINKING", "EVALUATION"],
+    status: "EXPLORING",
+  },
+  VISION: {
+    title: "VISION",
+    label: "COMPUTER VISION / VISUAL UNDERSTANDING",
+    description:
+      "Investigating how visual systems extract meaning from images, and where human judgment remains necessary.",
+    details: ["IMAGE DATA", "CLASSIFICATION", "DATA QUALITY", "HUMAN JUDGMENT"],
+    activeResearch: "VIRIDITAS",
+    actionLabel: "OPEN VIRIDITAS →",
+  },
+  DATA: {
+    title: "DATA",
+    label: "EVIDENCE / DATA QUALITY",
+    description:
+      "Treating data preparation as part of the research itself, not merely a step before modeling.",
+    details: ["DATASETS", "PREPROCESSING", "LABEL NORMALIZATION", "DUPLICATE LEAKAGE"],
+    connection: "VIRIDITAS",
+    actionLabel: "EXPLORE VIRIDITAS →",
+  },
+  SYSTEMS: {
+    title: "SYSTEMS",
+    label: "STRUCTURE / ENGINEERING",
+    description:
+      "Building technical structures that keep experiments, interfaces, and ideas understandable.",
+    details: ["WEB APPLICATIONS", "DATA PIPELINES", "INTERACTIVE SYSTEMS", "SOFTWARE STRUCTURE"],
+    status: "BUILDING",
+  },
+  CREATE: {
+    title: "CREATE",
+    label: "INTERACTION / COMMUNICATION",
+    description:
+      "Turning complex ideas into interfaces, visual systems, and experiences that people can actually understand.",
+    details: ["INTERACTION", "VISUAL DESIGN", "EXPERIMENTAL INTERFACES", "COMMUNICATION"],
+    status: "MAKING",
+  },
+};
+
+const researchDomainOrder: DomainKey[] = [
+  "AI",
+  "VISION",
+  "DATA",
+  "SYSTEMS",
+  "CREATE",
+];
+
+const domainLinks: Record<DomainKey, DomainKey[]> = {
+  AI: ["VISION", "DATA"],
+  VISION: ["AI", "DATA", "CREATE"],
+  DATA: ["AI", "VISION", "SYSTEMS"],
+  SYSTEMS: ["DATA", "CREATE"],
+  CREATE: ["VISION", "SYSTEMS"],
+};
+
+function Orbital({ onCase }: { onCase: () => void }) {
+  const reduceMotion = useReducedMotion();
+  const [selected, setSelected] = useState<DomainKey | null>(null);
+  const [hovered, setHovered] = useState<DomainKey | null>(null);
+
+  const activeKey = hovered ?? selected;
+  const selectedDomain = selected ? researchDomains[selected] : null;
 
   return (
     <div className="orbital-panel">
       <p className="panel-label">RESEARCH NODE 07</p>
 
-      <div className="orbital">
-        <div className="orbit o1" />
-        <div className="orbit o2" />
+      <div className={`orbital ${reduceMotion ? "reduced-motion" : ""}`} aria-live="polite">
+        <div className={`orbit o1 ${activeKey ? "is-linked" : ""}`} />
+        <div className={`orbit o2 ${activeKey ? "is-linked" : ""}`} />
 
         <div className="core">07</div>
 
-        {nodes.map((node, index) => (
-          <button
-            key={node}
-            className={`orbit-node node-${index} ${
-              active === node ? "active" : ""
-            }`}
-            onMouseEnter={() => setActive(node)}
-            onFocus={() => setActive(node)}
-            onClick={() => setActive(node)}
-          >
-            {node}
-          </button>
-        ))}
+        {researchDomainOrder.map((node, index) => {
+          const domain = researchDomains[node];
+          const isSelected = selected === node;
+          const isHovered = hovered === node;
+          const isLinked = !!selected && domainLinks[selected].includes(node);
+          const isActive = activeKey === node;
+
+          return (
+            <button
+              key={node}
+              type="button"
+              className={`orbit-node node-${index} ${
+                isSelected ? "active" : ""
+              } ${isHovered ? "hovered" : ""} ${
+                isLinked ? "linked" : ""
+              } ${activeKey && !isActive && !isLinked ? "muted" : ""}`}
+              onMouseEnter={() => setHovered(node)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(node)}
+              onBlur={() => setHovered(null)}
+              onClick={() => setSelected(node)}
+              aria-label={`Select ${domain.title} research domain`}
+              aria-pressed={isSelected}
+              data-node={node}
+            >
+              {node}
+            </button>
+          );
+        })}
       </div>
 
+      {selectedDomain ? (
+        <div className="orbital-panel__info">
+          <div className="orbital-panel__meta">
+            <p className="panel-label">FOCUS / {selectedDomain.title}</p>
+            <span className="orbital-status">{selectedDomain.status ?? "ACTIVE"}</span>
+          </div>
+
+          <h3 className="orbital-domain-title">{selectedDomain.title}</h3>
+          <p className="orbital-domain-label">{selectedDomain.label}</p>
+          <p className="orbital-domain-description">{selectedDomain.description}</p>
+
+          <div className="orbital-domain-details">
+            {selectedDomain.details.map((detail) => (
+              <span key={detail}>{detail}</span>
+            ))}
+          </div>
+
+          <div className="orbital-domain-footer">
+            {selectedDomain.activeResearch ? (
+              <span className="orbital-meta">ACTIVE RESEARCH / {selectedDomain.activeResearch}</span>
+            ) : null}
+
+            {selectedDomain.connection ? (
+              <span className="orbital-meta">CONNECTION / {selectedDomain.connection}</span>
+            ) : null}
+
+            {selectedDomain.actionLabel ? (
+              <button
+                type="button"
+                className="orbital-action"
+                onClick={onCase}
+              >
+                {selectedDomain.actionLabel}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <div className="orbital-panel__info orbital-panel__info--default">
+          <p className="panel-label">RESEARCH NODE 07</p>
+          <p className="orbital-domain-description">
+            Select a domain to trace how the work moves from question to form.
+          </p>
+        </div>
+      )}
+
       <p className="tiny">
-        FOCUS: {active} / SELECT A DOMAIN
+        {selectedDomain
+          ? `FOCUS: ${selectedDomain.title} / ${selectedDomain.label}`
+          : "SELECT A DOMAIN / TRACE THE NODE"}
       </p>
     </div>
   );
