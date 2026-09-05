@@ -6,7 +6,9 @@ import {
   discoveryNodes,
   experiments,
   notebookEntries,
+  observationSteps,
   profile,
+  researchDomains,
 } from "./data";
 import { GithubContribution } from "./GithubContribution";
 
@@ -34,6 +36,28 @@ function mark(text: string) {
   return <span className="mark">{text}</span>;
 }
 
+function ResearchTrail({ trail }: { trail: string[] }) {
+  return (
+    <div className="research-trail" aria-live="polite">
+      <p className="panel-label">TRACE / CURRENT SESSION</p>
+      <div className="research-trail__items">
+        {trail.map((item, index) => (
+          <span key={`${item}-${index}`}>
+            {item}
+            {index < trail.length - 1 ? <i>→</i> : null}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type SessionEvent = {
+  time: string;
+  type: string;
+  message: string;
+};
+
 export function Laboratory() {
   const [entered, setEntered] = useState(false);
   const [section, setSection] = useState<Section>("observe");
@@ -41,14 +65,38 @@ export function Laboratory() {
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [caseStudy, setCaseStudy] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
+  const [trail, setTrail] = useState<string[]>(["ENTRY"]);
+  const [sessionEvents, setSessionEvents] = useState<SessionEvent[]>([
+    { time: "20:41", type: "SYSTEM", message: "SESSION INITIALIZED" },
+    { time: "20:42", type: "NODE", message: "RESEARCH NODE 07 ACTIVE" },
+  ]);
 
   const reduceMotion = useReducedMotion();
   const sectionRef = useRef<HTMLDivElement>(null);
+
+  const addEvent = (type: string, message: string) => {
+    const time = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    setSessionEvents((prev) => [{ time, type, message }, ...prev].slice(0, 5));
+  };
+
+  const addTrail = (next: string) => {
+    setTrail((prev) => {
+      const last = prev[prev.length - 1];
+      if (last === next) return prev;
+      return [...prev, next].slice(-6);
+    });
+  };
 
   const go = (next: Section) => {
     setSection(next);
     setCaseStudy(false);
     setHasNavigated(true);
+    addTrail(next.toUpperCase());
+    addEvent("SECTION", `${next.toUpperCase()} ACCESSED`);
 
     setTimeout(() => {
       sectionRef.current?.scrollIntoView({
@@ -88,13 +136,20 @@ export function Laboratory() {
           <Entry
             key="entry"
             onEnter={() => setEntered(true)}
+            onNavigate={(next) => {
+              setEntered(true);
+              setHasNavigated(true);
+              go(next);
+            }}
             onStatus={() => setStatusOpen(!statusOpen)}
             statusOpen={statusOpen}
             onCase={() => {
               setEntered(true);
               setCaseStudy(true);
               setHasNavigated(true);
+              addEvent("CASE", "VIRIDITAS OPENED");
             }}
+            sessionEvents={sessionEvents}
           />
         ) : (
           <motion.div
@@ -114,8 +169,11 @@ export function Laboratory() {
                 setCaseStudy(false);
                 setEntered(false);
                 setHasNavigated(false);
+                setTrail(["ENTRY"]);
               }}
             />
+
+            <ResearchTrail trail={trail} />
 
             {!hasNavigated && (
               <section className="lab-intro">
@@ -172,15 +230,22 @@ export function Laboratory() {
 
 function Entry({
   onEnter,
+  onNavigate,
   onStatus,
   statusOpen,
   onCase,
+  sessionEvents,
 }: {
   onEnter: () => void;
+  onNavigate: (section: Section) => void;
   onStatus: () => void;
   statusOpen: boolean;
   onCase: () => void;
+  sessionEvents: SessionEvent[];
 }) {
+  const [focus, setFocus] = useState<"AI" | "VISION" | "DATA" | "SYSTEMS" | "CREATE" | null>(null);
+  const activeDomain = focus ? researchDomains.find((domain) => domain.id === focus) ?? null : null;
+
   return (
     <motion.section
       className="entry"
@@ -220,11 +285,11 @@ function Entry({
 
       <div className="entry-grid">
         <aside className="entry-left">
-          <Orbital onCase={onCase} />
+          <Orbital onCase={onCase} onDomainChange={setFocus} />
 
           <nav className="entry-nav">
             {nav.map((item, index) => (
-              <button onClick={onEnter} key={item}>
+              <button onClick={() => onNavigate(item)} key={item}>
                 <i>0{index + 1}</i>
 
                 <span>
@@ -278,8 +343,11 @@ function Entry({
         </section>
 
         <aside className="entry-right">
-          <Environment />
-          <LiveFeed />
+          <Environment
+            condition={activeDomain?.condition ?? "CURIOUS"}
+            mode={activeDomain?.mode ?? "EXPLORATION"}
+          />
+          <LiveFeed events={sessionEvents} />
 
           <div className="coords">
             RESEARCH ORIENTATION
@@ -308,62 +376,6 @@ function Entry({
 
 type DomainKey = "AI" | "VISION" | "DATA" | "SYSTEMS" | "CREATE";
 
-type ResearchDomain = {
-  title: string;
-  label: string;
-  description: string;
-  details: string[];
-  status?: string;
-  connection?: string;
-  activeResearch?: string;
-  actionLabel?: string;
-};
-
-const researchDomains: Record<DomainKey, ResearchDomain> = {
-  AI: {
-    title: "AI",
-    label: "INTELLIGENCE / LEARNING SYSTEMS",
-    description:
-      "Exploring how machines can learn patterns, make predictions, and assist human reasoning.",
-    details: ["MACHINE LEARNING", "EXPERIMENTATION", "MODEL THINKING", "EVALUATION"],
-    status: "EXPLORING",
-  },
-  VISION: {
-    title: "VISION",
-    label: "COMPUTER VISION / VISUAL UNDERSTANDING",
-    description:
-      "Investigating how visual systems extract meaning from images, and where human judgment remains necessary.",
-    details: ["IMAGE DATA", "CLASSIFICATION", "DATA QUALITY", "HUMAN JUDGMENT"],
-    activeResearch: "VIRIDITAS",
-    actionLabel: "OPEN VIRIDITAS →",
-  },
-  DATA: {
-    title: "DATA",
-    label: "EVIDENCE / DATA QUALITY",
-    description:
-      "Treating data preparation as part of the research itself, not merely a step before modeling.",
-    details: ["DATASETS", "PREPROCESSING", "LABEL NORMALIZATION", "DUPLICATE LEAKAGE"],
-    connection: "VIRIDITAS",
-    actionLabel: "EXPLORE VIRIDITAS →",
-  },
-  SYSTEMS: {
-    title: "SYSTEMS",
-    label: "STRUCTURE / ENGINEERING",
-    description:
-      "Building technical structures that keep experiments, interfaces, and ideas understandable.",
-    details: ["WEB APPLICATIONS", "DATA PIPELINES", "INTERACTIVE SYSTEMS", "SOFTWARE STRUCTURE"],
-    status: "BUILDING",
-  },
-  CREATE: {
-    title: "CREATE",
-    label: "INTERACTION / COMMUNICATION",
-    description:
-      "Turning complex ideas into interfaces, visual systems, and experiences that people can actually understand.",
-    details: ["INTERACTION", "VISUAL DESIGN", "EXPERIMENTAL INTERFACES", "COMMUNICATION"],
-    status: "MAKING",
-  },
-};
-
 const researchDomainOrder: DomainKey[] = [
   "AI",
   "VISION",
@@ -380,14 +392,24 @@ const domainLinks: Record<DomainKey, DomainKey[]> = {
   CREATE: ["VISION", "SYSTEMS"],
 };
 
-function Orbital({ onCase }: { onCase: () => void }) {
+function Orbital({
+  onCase,
+  onDomainChange,
+}: {
+  onCase: () => void;
+  onDomainChange?: (domain: DomainKey | null) => void;
+}) {
   const reduceMotion = useReducedMotion();
   const [active, setActive] = useState<DomainKey | null>(null);
   const [hovered, setHovered] = useState<DomainKey | null>(null);
 
   const activeKey = hovered ?? active;
-  const selectedDomain = active ? researchDomains[active] : null;
-  const isDefaultState = active === null && hovered === null;
+  const selectedDomain = active ? researchDomains.find((domain) => domain.id === active) ?? null : null;
+
+  const handleSelection = (node: DomainKey | null) => {
+    setActive(node);
+    onDomainChange?.(node);
+  };
 
   return (
     <div className="orbital-panel orbital-panel--stable">
@@ -401,11 +423,11 @@ function Orbital({ onCase }: { onCase: () => void }) {
           <button
             type="button"
             className="core"
-            onClick={() => setActive(null)}
+            onClick={() => handleSelection(null)}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                setActive(null);
+                handleSelection(null);
               }
             }}
             aria-label="Reset research node"
@@ -414,7 +436,7 @@ function Orbital({ onCase }: { onCase: () => void }) {
           </button>
 
           {researchDomainOrder.map((node, index) => {
-            const domain = researchDomains[node];
+            const domain = researchDomains.find((entry) => entry.id === node) ?? researchDomains[0];
             const isSelected = active === node;
             const isHovered = hovered === node;
             const isLinked = !!active && domainLinks[active].includes(node);
@@ -433,7 +455,7 @@ function Orbital({ onCase }: { onCase: () => void }) {
                 onMouseLeave={() => setHovered(null)}
                 onFocus={() => setHovered(node)}
                 onBlur={() => setHovered(null)}
-                onClick={() => setActive(node)}
+                onClick={() => handleSelection(node)}
                 aria-label={`Select ${domain.title} research domain`}
                 aria-pressed={isSelected}
                 data-node={node}
@@ -473,11 +495,7 @@ function Orbital({ onCase }: { onCase: () => void }) {
                   ) : null}
 
                   {selectedDomain.actionLabel ? (
-                    <button
-                      type="button"
-                      className="orbital-action"
-                      onClick={onCase}
-                    >
+                    <button type="button" className="orbital-action" onClick={onCase}>
                       {selectedDomain.actionLabel}
                     </button>
                   ) : null}
@@ -504,7 +522,13 @@ function Orbital({ onCase }: { onCase: () => void }) {
   );
 }
 
-function Environment() {
+function Environment({
+  condition,
+  mode,
+}: {
+  condition?: string;
+  mode?: string;
+}) {
   return (
     <div className="environment">
       <p className="panel-label">ENVIRONMENT</p>
@@ -521,18 +545,18 @@ function Environment() {
 
       <div>
         <span>CONDITION</span>
-        <b>CURIOUS</b>
+        <b>{condition ?? "CURIOUS"}</b>
       </div>
 
       <div>
         <span>MODE</span>
-        <b>EXPLORATION</b>
+        <b>{mode ?? "EXPLORATION"}</b>
       </div>
     </div>
   );
 }
 
-function LiveFeed() {
+function LiveFeed({ events }: { events: SessionEvent[] }) {
   return (
     <div className="feed">
       <p className="panel-label">
@@ -547,7 +571,15 @@ function LiveFeed() {
         <path d="M0 26h17l6-12 10 28 12-39 12 43 11-20 10 4 12-10 13 17 15-25 13 29 13-14 9 2 13-19 11 17 11-8 10 8h32" />
       </svg>
 
-      <small>SIGNAL / FIELD NOTES / CURRENT</small>
+      <ul className="live-feed-list">
+        {events.map((event) => (
+          <li key={`${event.time}-${event.message}`}>
+            <span>{event.time}</span>
+            <strong>{event.type}</strong>
+            <em>{event.message}</em>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -604,6 +636,8 @@ function SectionView({
   onCase: () => void;
   onNavigate: (section: Section) => void;
 }) {
+  const [selectedStep, setSelectedStep] = useState(0);
+
   if (section === "profile") {
     return (
       <section className="content-section profile">
@@ -652,6 +686,8 @@ function SectionView({
   }
 
   if (section === "observe") {
+    const activeStep = observationSteps[selectedStep];
+
     return (
       <section className="content-section observe">
         <p className="eyebrow">02 / OBSERVATORY</p>
@@ -676,6 +712,26 @@ function SectionView({
               <dd>Question → evidence → iteration</dd>
             </dl>
           </div>
+        </div>
+
+        <div className="research-process" aria-label="Research process">
+          {observationSteps.map((step, index) => (
+            <button
+              key={step.step}
+              type="button"
+              className={selectedStep === index ? "active" : ""}
+              onClick={() => setSelectedStep(index)}
+              aria-pressed={selectedStep === index}
+            >
+              {step.step}
+            </button>
+          ))}
+        </div>
+
+        <div className="research-process-copy">
+          <strong>{activeStep.step}</strong>
+          <br />
+          {activeStep.description}
         </div>
 
         <DiscoveryMap
@@ -973,10 +1029,12 @@ function Terminal({
     const routes: Record<string, Section> = {
       profile: "profile",
       about: "observe",
+      observe: "observe",
       experiments: "experiments",
       notebook: "notebook",
       archive: "archive",
       contact: "contact",
+      viriditas: "experiments",
     };
 
     if (command === "clear") {
@@ -985,7 +1043,30 @@ function Terminal({
       setLines((prev) => [
         ...prev,
         "> help",
-        "help · profile · about · experiments · notebook · archive · contact · clear",
+        "help · profile · observe · experiments · notebook · archive · contact · status · trace · viriditas · clear",
+      ]);
+    } else if (command === "status") {
+      setLines((prev) => [
+        ...prev,
+        "> status",
+        "SYSTEM · OPERATIONAL",
+        "NODE · 07",
+        "ACTIVE EXPERIMENT · VIRIDITAS",
+        "RESEARCH STATE · DOCUMENTING",
+      ]);
+    } else if (command === "trace") {
+      setLines((prev) => [
+        ...prev,
+        "> trace",
+        "CURRENT SESSION",
+        "ENTRY → OBSERVE → VISION → VIRIDITAS",
+      ]);
+    } else if (command === "viriditas") {
+      onNavigate("experiments");
+      setLines((prev) => [
+        ...prev,
+        "> viriditas",
+        "OPENING EXP_001 / VIRIDITAS...",
       ]);
     } else if (routes[command]) {
       onNavigate(routes[command]);
