@@ -7,6 +7,11 @@ export const profile = {
   focus: ["Artificial intelligence", "Computer vision", "Machine learning", "Data systems"],
 };
 
+export const socialLinks = {
+  github: "https://github.com/Pushpak-Cyrus",
+  linkedin: "https://www.linkedin.com/in/pushpak-kumar-cyrus/",
+};
+
 export type ResearchDomain = {
   id: "AI" | "VISION" | "DATA" | "SYSTEMS" | "CREATE";
   title: string;

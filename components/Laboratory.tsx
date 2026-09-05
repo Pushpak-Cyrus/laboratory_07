@@ -9,6 +9,7 @@ import {
   observationSteps,
   profile,
   researchDomains,
+  socialLinks,
 } from "./data";
 import { GithubContribution } from "./GithubContribution";
 
@@ -672,23 +673,62 @@ function SectionView({
           </div>
         </motion.div>
 
-        <motion.div className="focus-grid" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
-          <p className="panel-label">CURRENT FOCUS</p>
+        <motion.div className="profile-record" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
+          <p className="panel-label">FIELD RECORD</p>
 
-          {profile.focus.map((focus, index) => (
-            <span key={focus}>
-              0{index + 1} / {focus}
-            </span>
-          ))}
+          <div className="profile-record-grid">
+            <div className="profile-record-block">
+              <p className="panel-label">CURRENT FOCUS</p>
 
-          <p className="panel-label">WORKING PRINCIPLES</p>
+              {profile.focus.map((focus, index) => (
+                <div className="record-row" key={focus}>
+                  <span>0{index + 1}</span>
+                  <span>{focus}</span>
+                </div>
+              ))}
+            </div>
 
-          <span>Curiosity with evidence</span>
-          <span>Process over performance</span>
-          <span>Systems that stay understandable</span>
+            <div className="profile-record-block">
+              <p className="panel-label">WORKING PRINCIPLES</p>
+
+              <div className="record-row record-row--stacked">
+                <span>01</span>
+                <span>Curiosity with evidence</span>
+              </div>
+              <div className="record-row record-row--stacked">
+                <span>02</span>
+                <span>Process over performance</span>
+              </div>
+              <div className="record-row record-row--stacked">
+                <span>03</span>
+                <span>Systems that stay understandable</span>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.18 }}>
+        <motion.div className="profile-now" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.16 }}>
+          <p className="panel-label">NOW</p>
+
+          <div className="profile-now-row">
+            <span>LEARNING</span>
+            <strong>Machine Learning</strong>
+          </div>
+          <div className="profile-now-row">
+            <span>BUILDING</span>
+            <strong>VIRIDITAS</strong>
+          </div>
+          <div className="profile-now-row">
+            <span>EXPLORING</span>
+            <strong>Computer Vision</strong>
+          </div>
+          <div className="profile-now-row">
+            <span>DOCUMENTING</span>
+            <strong>The process</strong>
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.2 }}>
           <GithubContribution username="Pushpak-Cyrus" />
         </motion.div>
       </motion.section>
@@ -915,13 +955,62 @@ function SectionView({
         If the question is interesting enough, let’s compare notes.
       </motion.p>
 
-      <motion.a href={`mailto:${profile.email}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.16 }} whileHover={reduceMotion ? undefined : { y: -2 }}>
+      <motion.a
+        className="contact-email"
+        href={`mailto:${profile.email}`}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...reveal, delay: 0.16 }}
+        whileHover={reduceMotion ? undefined : { y: -2 }}
+      >
         {profile.email} <span>↗</span>
       </motion.a>
 
-      <motion.div className="contact-meta" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.2 }}>
-        <span>AVAILABILITY</span>
-        <b>{profile.availability}</b>
+      <motion.div className="contact-secondary" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.18 }}>
+        <p className="panel-label">OTHER CHANNELS</p>
+
+        <a
+          className="contact-channel"
+          href={socialLinks.github}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Open Pushpak Cyrus GitHub profile in a new tab"
+        >
+          <span className="channel-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+              <path d="M12 .5a12 12 0 0 0-3.79 23.38c.6.11.82-.26.82-.58v-2.02c-3.34.73-4.04-1.4-4.04-1.4-.55-1.4-1.34-1.77-1.34-1.77-1.09-.75.08-.74.08-.74 1.2.09 1.84 1.23 1.84 1.23 1.08 1.85 2.82 1.32 3.5 1 .11-.78.42-1.32.76-1.63-2.66-.3-5.47-1.34-5.47-5.95 0-1.32.47-2.4 1.23-3.25-.12-.3-.53-1.5.12-3.13 0 0 1-.32 3.3 1.23a11.4 11.4 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.63.24 2.83.12 3.13.77.85 1.23 1.93 1.23 3.25 0 4.62-2.82 5.64-5.5 5.94.43.37.81 1.1.81 2.22v3.29c0 .32.21.7.83.58A12 12 0 0 0 12 .5Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span className="channel-name">GitHub</span>
+          <span className="channel-arrow">↗</span>
+        </a>
+
+        <a
+          className="contact-channel"
+          href={socialLinks.linkedin}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Open Pushpak Kumar Cyrus LinkedIn profile in a new tab"
+        >
+          <span className="channel-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+              <path d="M6.94 8.5A1.56 1.56 0 1 1 6.94 5.4a1.56 1.56 0 0 1 0 3.1ZM5.5 9.86h2.9V18H5.5V9.86Zm5.2 0h2.77v1.13h.04c.39-.74 1.33-1.52 2.73-1.52 2.93 0 3.47 1.92 3.47 4.42V18h-2.9v-16.8c0-1.06-.02-2.42-1.47-2.42-1.48 0-1.7 1.15-1.7 2.34V18h-2.9V9.86Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span className="channel-name">LinkedIn</span>
+          <span className="channel-arrow">↗</span>
+        </a>
+      </motion.div>
+
+      <motion.div className="contact-meta" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.22 }}>
+        <div className="contact-meta-row">
+          <span>STATUS</span>
+          <b>{profile.availability}</b>
+        </div>
+        <div className="contact-meta-row">
+          <span>RESPONSE</span>
+          <b>Typically responsive to thoughtful messages.</b>
+        </div>
       </motion.div>
     </motion.section>
   );
