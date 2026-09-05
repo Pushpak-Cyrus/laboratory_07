@@ -21,7 +21,7 @@
 .github-link {
   color: var(--lime);
   text-decoration: none;
-  font: 500 10px 'DM Mono', monospace;
+  font: 500 12px 'DM Mono', monospace;
   letter-spacing: 0.14em;
   text-transform: lowercase;
   transition: opacity 0.2s;
@@ -43,7 +43,7 @@
 .react-github-calendar .react-activity-calendar__label {
   fill: rgba(231, 233, 227, 0.8);
   font-family: 'DM Mono', monospace;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
 }
 
