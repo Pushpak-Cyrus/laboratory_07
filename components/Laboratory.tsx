@@ -255,7 +255,7 @@ function Entry({
       <header className="entry-header">
         <div>
           <p className="wordmark">LABORATORY_07</p>
-          <span>/// PERSONAL RESEARCH NODE</span>
+          <span>{"///"} PERSONAL RESEARCH NODE</span>
         </div>
 
         <div className="initialize">
@@ -415,101 +415,99 @@ function Orbital({
     <div className="orbital-panel orbital-panel--stable">
       <p className="panel-label">RESEARCH NODE 07</p>
 
-      <div className="orbital-stage">
-        <div className={`orbital ${reduceMotion ? "reduced-motion" : ""}`} aria-live="polite">
-          <div className={`orbit o1 ${activeKey ? "is-linked" : ""}`} />
-          <div className={`orbit o2 ${activeKey ? "is-linked" : ""}`} />
+      <div className={`orbital-visual ${reduceMotion ? "reduced-motion" : ""}`} aria-live="polite">
+        <div className={`orbit o1 ${activeKey ? "is-linked" : ""}`} />
+        <div className={`orbit o2 ${activeKey ? "is-linked" : ""}`} />
 
-          <button
-            type="button"
-            className="core"
-            onClick={() => handleSelection(null)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                handleSelection(null);
-              }
-            }}
-            aria-label="Reset research node"
-          >
-            07
-          </button>
+        <button
+          type="button"
+          className="core"
+          onClick={() => handleSelection(null)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleSelection(null);
+            }
+          }}
+          aria-label="Reset research node"
+        >
+          07
+        </button>
 
-          {researchDomainOrder.map((node, index) => {
-            const domain = researchDomains.find((entry) => entry.id === node) ?? researchDomains[0];
-            const isSelected = active === node;
-            const isHovered = hovered === node;
-            const isLinked = !!active && domainLinks[active].includes(node);
-            const isActive = activeKey === node;
+        {researchDomainOrder.map((node, index) => {
+          const domain = researchDomains.find((entry) => entry.id === node) ?? researchDomains[0];
+          const isSelected = active === node;
+          const isHovered = hovered === node;
+          const isLinked = !!active && domainLinks[active].includes(node);
+          const isActive = activeKey === node;
 
-            return (
-              <button
-                key={node}
-                type="button"
-                className={`orbit-node node-${index} ${
-                  isSelected ? "active" : ""
-                } ${isHovered ? "hovered" : ""} ${
-                  isLinked ? "linked" : ""
-                } ${activeKey && !isActive && !isLinked ? "muted" : ""}`}
-                onMouseEnter={() => setHovered(node)}
-                onMouseLeave={() => setHovered(null)}
-                onFocus={() => setHovered(node)}
-                onBlur={() => setHovered(null)}
-                onClick={() => handleSelection(node)}
-                aria-label={`Select ${domain.title} research domain`}
-                aria-pressed={isSelected}
-                data-node={node}
-              >
-                {node}
-              </button>
-            );
-          })}
-        </div>
+          return (
+            <button
+              key={node}
+              type="button"
+              className={`orbit-node node-${index} ${
+                isSelected ? "active" : ""
+              } ${isHovered ? "hovered" : ""} ${
+                isLinked ? "linked" : ""
+              } ${activeKey && !isActive && !isLinked ? "muted" : ""}`}
+              onMouseEnter={() => setHovered(node)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(node)}
+              onBlur={() => setHovered(null)}
+              onClick={() => handleSelection(node)}
+              aria-label={`Select ${domain.title} research domain`}
+              aria-pressed={isSelected}
+              data-node={node}
+            >
+              {node}
+            </button>
+          );
+        })}
+      </div>
 
-        <div className="orbital-panel__info-wrap">
-          <div className={`orbital-panel__info ${selectedDomain ? "is-visible" : ""}`}>
-            {selectedDomain ? (
-              <>
-                <div className="orbital-panel__meta">
-                  <p className="panel-label">FOCUS / {selectedDomain.title}</p>
-                  <span className="orbital-status">{selectedDomain.status ?? "ACTIVE"}</span>
-                </div>
-
-                <h3 className="orbital-domain-title">{selectedDomain.title}</h3>
-                <p className="orbital-domain-label">{selectedDomain.label}</p>
-                <p className="orbital-domain-description">{selectedDomain.description}</p>
-
-                <div className="orbital-domain-details">
-                  {selectedDomain.details.map((detail) => (
-                    <span key={detail}>{detail}</span>
-                  ))}
-                </div>
-
-                <div className="orbital-domain-footer">
-                  {selectedDomain.activeResearch ? (
-                    <span className="orbital-meta">ACTIVE RESEARCH / {selectedDomain.activeResearch}</span>
-                  ) : null}
-
-                  {selectedDomain.connection ? (
-                    <span className="orbital-meta">CONNECTION / {selectedDomain.connection}</span>
-                  ) : null}
-
-                  {selectedDomain.actionLabel ? (
-                    <button type="button" className="orbital-action" onClick={onCase}>
-                      {selectedDomain.actionLabel}
-                    </button>
-                  ) : null}
-                </div>
-              </>
-            ) : (
-              <div className="orbital-panel__empty">
-                <p className="panel-label">RESEARCH NODE 07</p>
-                <p className="orbital-domain-description">
-                  Select a domain to trace how the work moves from question to form.
-                </p>
+      <div className="orbital-info">
+        <div className={`orbital-panel__info ${selectedDomain ? "is-visible" : ""}`}>
+          {selectedDomain ? (
+            <>
+              <div className="orbital-panel__meta">
+                <p className="panel-label">FOCUS / {selectedDomain.title}</p>
+                <span className="orbital-status">{selectedDomain.status ?? "ACTIVE"}</span>
               </div>
-            )}
-          </div>
+
+              <h3 className="orbital-domain-title">{selectedDomain.title}</h3>
+              <p className="orbital-domain-label">{selectedDomain.label}</p>
+              <p className="orbital-domain-description">{selectedDomain.description}</p>
+
+              <div className="orbital-domain-details">
+                {selectedDomain.details.map((detail) => (
+                  <span key={detail}>{detail}</span>
+                ))}
+              </div>
+
+              <div className="orbital-domain-footer">
+                {selectedDomain.activeResearch ? (
+                  <span className="orbital-meta">ACTIVE RESEARCH / {selectedDomain.activeResearch}</span>
+                ) : null}
+
+                {selectedDomain.connection ? (
+                  <span className="orbital-meta">CONNECTION / {selectedDomain.connection}</span>
+                ) : null}
+
+                {selectedDomain.actionLabel ? (
+                  <button type="button" className="orbital-action" onClick={onCase}>
+                    {selectedDomain.actionLabel}
+                  </button>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div className="orbital-panel__empty">
+              <p className="panel-label">RESEARCH NODE 07</p>
+              <p className="orbital-domain-description">
+                Select a domain to trace how the work moves from question to form.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
