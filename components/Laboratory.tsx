@@ -382,103 +382,123 @@ const domainLinks: Record<DomainKey, DomainKey[]> = {
 
 function Orbital({ onCase }: { onCase: () => void }) {
   const reduceMotion = useReducedMotion();
-  const [selected, setSelected] = useState<DomainKey | null>(null);
+  const [active, setActive] = useState<DomainKey | null>(null);
   const [hovered, setHovered] = useState<DomainKey | null>(null);
 
-  const activeKey = hovered ?? selected;
-  const selectedDomain = selected ? researchDomains[selected] : null;
+  const activeKey = hovered ?? active;
+  const selectedDomain = active ? researchDomains[active] : null;
+  const isDefaultState = active === null && hovered === null;
 
   return (
-    <div className="orbital-panel">
+    <div className="orbital-panel orbital-panel--stable">
       <p className="panel-label">RESEARCH NODE 07</p>
 
-      <div className={`orbital ${reduceMotion ? "reduced-motion" : ""}`} aria-live="polite">
-        <div className={`orbit o1 ${activeKey ? "is-linked" : ""}`} />
-        <div className={`orbit o2 ${activeKey ? "is-linked" : ""}`} />
+      <div className="orbital-stage">
+        <div className={`orbital ${reduceMotion ? "reduced-motion" : ""}`} aria-live="polite">
+          <div className={`orbit o1 ${activeKey ? "is-linked" : ""}`} />
+          <div className={`orbit o2 ${activeKey ? "is-linked" : ""}`} />
 
-        <div className="core">07</div>
+          <button
+            type="button"
+            className="core"
+            onClick={() => setActive(null)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setActive(null);
+              }
+            }}
+            aria-label="Reset research node"
+          >
+            07
+          </button>
 
-        {researchDomainOrder.map((node, index) => {
-          const domain = researchDomains[node];
-          const isSelected = selected === node;
-          const isHovered = hovered === node;
-          const isLinked = !!selected && domainLinks[selected].includes(node);
-          const isActive = activeKey === node;
+          {researchDomainOrder.map((node, index) => {
+            const domain = researchDomains[node];
+            const isSelected = active === node;
+            const isHovered = hovered === node;
+            const isLinked = !!active && domainLinks[active].includes(node);
+            const isActive = activeKey === node;
 
-          return (
-            <button
-              key={node}
-              type="button"
-              className={`orbit-node node-${index} ${
-                isSelected ? "active" : ""
-              } ${isHovered ? "hovered" : ""} ${
-                isLinked ? "linked" : ""
-              } ${activeKey && !isActive && !isLinked ? "muted" : ""}`}
-              onMouseEnter={() => setHovered(node)}
-              onMouseLeave={() => setHovered(null)}
-              onFocus={() => setHovered(node)}
-              onBlur={() => setHovered(null)}
-              onClick={() => setSelected(node)}
-              aria-label={`Select ${domain.title} research domain`}
-              aria-pressed={isSelected}
-              data-node={node}
-            >
-              {node}
-            </button>
-          );
-        })}
-      </div>
-
-      {selectedDomain ? (
-        <div className="orbital-panel__info">
-          <div className="orbital-panel__meta">
-            <p className="panel-label">FOCUS / {selectedDomain.title}</p>
-            <span className="orbital-status">{selectedDomain.status ?? "ACTIVE"}</span>
-          </div>
-
-          <h3 className="orbital-domain-title">{selectedDomain.title}</h3>
-          <p className="orbital-domain-label">{selectedDomain.label}</p>
-          <p className="orbital-domain-description">{selectedDomain.description}</p>
-
-          <div className="orbital-domain-details">
-            {selectedDomain.details.map((detail) => (
-              <span key={detail}>{detail}</span>
-            ))}
-          </div>
-
-          <div className="orbital-domain-footer">
-            {selectedDomain.activeResearch ? (
-              <span className="orbital-meta">ACTIVE RESEARCH / {selectedDomain.activeResearch}</span>
-            ) : null}
-
-            {selectedDomain.connection ? (
-              <span className="orbital-meta">CONNECTION / {selectedDomain.connection}</span>
-            ) : null}
-
-            {selectedDomain.actionLabel ? (
+            return (
               <button
+                key={node}
                 type="button"
-                className="orbital-action"
-                onClick={onCase}
+                className={`orbit-node node-${index} ${
+                  isSelected ? "active" : ""
+                } ${isHovered ? "hovered" : ""} ${
+                  isLinked ? "linked" : ""
+                } ${activeKey && !isActive && !isLinked ? "muted" : ""}`}
+                onMouseEnter={() => setHovered(node)}
+                onMouseLeave={() => setHovered(null)}
+                onFocus={() => setHovered(node)}
+                onBlur={() => setHovered(null)}
+                onClick={() => setActive(node)}
+                aria-label={`Select ${domain.title} research domain`}
+                aria-pressed={isSelected}
+                data-node={node}
               >
-                {selectedDomain.actionLabel}
+                {node}
               </button>
-            ) : null}
+            );
+          })}
+        </div>
+
+        <div className="orbital-panel__info-wrap">
+          <div className={`orbital-panel__info ${selectedDomain ? "is-visible" : ""}`}>
+            {selectedDomain ? (
+              <>
+                <div className="orbital-panel__meta">
+                  <p className="panel-label">FOCUS / {selectedDomain.title}</p>
+                  <span className="orbital-status">{selectedDomain.status ?? "ACTIVE"}</span>
+                </div>
+
+                <h3 className="orbital-domain-title">{selectedDomain.title}</h3>
+                <p className="orbital-domain-label">{selectedDomain.label}</p>
+                <p className="orbital-domain-description">{selectedDomain.description}</p>
+
+                <div className="orbital-domain-details">
+                  {selectedDomain.details.map((detail) => (
+                    <span key={detail}>{detail}</span>
+                  ))}
+                </div>
+
+                <div className="orbital-domain-footer">
+                  {selectedDomain.activeResearch ? (
+                    <span className="orbital-meta">ACTIVE RESEARCH / {selectedDomain.activeResearch}</span>
+                  ) : null}
+
+                  {selectedDomain.connection ? (
+                    <span className="orbital-meta">CONNECTION / {selectedDomain.connection}</span>
+                  ) : null}
+
+                  {selectedDomain.actionLabel ? (
+                    <button
+                      type="button"
+                      className="orbital-action"
+                      onClick={onCase}
+                    >
+                      {selectedDomain.actionLabel}
+                    </button>
+                  ) : null}
+                </div>
+              </>
+            ) : (
+              <div className="orbital-panel__empty">
+                <p className="panel-label">RESEARCH NODE 07</p>
+                <p className="orbital-domain-description">
+                  Select a domain to trace how the work moves from question to form.
+                </p>
+              </div>
+            )}
           </div>
         </div>
-      ) : (
-        <div className="orbital-panel__info orbital-panel__info--default">
-          <p className="panel-label">RESEARCH NODE 07</p>
-          <p className="orbital-domain-description">
-            Select a domain to trace how the work moves from question to form.
-          </p>
-        </div>
-      )}
+      </div>
 
       <p className="tiny">
         {selectedDomain
           ? `FOCUS: ${selectedDomain.title} / ${selectedDomain.label}`
-          : "SELECT A DOMAIN / TRACE THE NODE"}
+          : "FOCUS: NONE / SELECT A DOMAIN"}
       </p>
     </div>
   );
