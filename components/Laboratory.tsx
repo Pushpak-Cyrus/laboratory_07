@@ -635,13 +635,24 @@ function SectionView({
   onNavigate: (section: Section) => void;
 }) {
   const [selectedStep, setSelectedStep] = useState(0);
+  const reduceMotion = useReducedMotion();
+  const reveal = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const };
 
   if (section === "profile") {
     return (
-      <section className="content-section profile">
-        <p className="eyebrow">01 / PROFILE</p>
+      <motion.section
+        className="content-section profile"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reveal}
+      >
+        <motion.p className="eyebrow" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.05 }}>
+          01 / PROFILE
+        </motion.p>
 
-        <div className="profile-grid">
+        <motion.div className="profile-grid" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>
           <div>
             <p className="eyebrow">RESEARCHER / BUILDER</p>
 
@@ -659,9 +670,9 @@ function SectionView({
               WRITE TO {profile.email} ↗
             </a>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="focus-grid">
+        <motion.div className="focus-grid" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
           <p className="panel-label">CURRENT FOCUS</p>
 
           {profile.focus.map((focus, index) => (
@@ -675,11 +686,12 @@ function SectionView({
           <span>Curiosity with evidence</span>
           <span>Process over performance</span>
           <span>Systems that stay understandable</span>
-        </div>
+        </motion.div>
 
-        {/* GITHUB CONTRIBUTION CALENDAR */}
-        <GithubContribution username="Pushpak-Cyrus" />
-      </section>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.18 }}>
+          <GithubContribution username="Pushpak-Cyrus" />
+        </motion.div>
+      </motion.section>
     );
   }
 
@@ -687,10 +699,17 @@ function SectionView({
     const activeStep = observationSteps[selectedStep];
 
     return (
-      <section className="content-section observe">
-        <p className="eyebrow">02 / OBSERVATORY</p>
+      <motion.section
+        className="content-section observe"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reveal}
+      >
+        <motion.p className="eyebrow" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.05 }}>
+          02 / OBSERVATORY
+        </motion.p>
 
-        <div className="split">
+        <motion.div className="split" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>
           <h2>
             The practice is
             <br />
@@ -710,9 +729,9 @@ function SectionView({
               <dd>Question → evidence → iteration</dd>
             </dl>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="research-process" aria-label="Research process">
+        <motion.div className="research-process" aria-label="Research process" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
           {observationSteps.map((step, index) => (
             <button
               key={step.step}
@@ -724,13 +743,13 @@ function SectionView({
               {step.step}
             </button>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="research-process-copy">
+        <motion.div className="research-process-copy" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.16 }}>
           <strong>{activeStep.step}</strong>
           <br />
           {activeStep.description}
-        </div>
+        </motion.div>
 
         <DiscoveryMap
           onViriditas={() => {
@@ -738,7 +757,7 @@ function SectionView({
             setTimeout(onCase, 100);
           }}
         />
-      </section>
+      </motion.section>
     );
   }
 
@@ -748,22 +767,36 @@ function SectionView({
     );
 
     return (
-      <section className="content-section">
-        <p className="eyebrow">03 / EXPERIMENTS</p>
+      <motion.section
+        className="content-section"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reveal}
+      >
+        <motion.p className="eyebrow" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.05 }}>
+          03 / EXPERIMENTS
+        </motion.p>
 
-        <h2>Questions given form.</h2>
+        <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>Questions given form.</motion.h2>
 
-        <div
+        <motion.div
           className={`experiment-grid ${
             liveExperiments.length === 1
               ? "experiment-grid--single"
               : ""
           }`}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...reveal, delay: 0.12 }}
         >
-          {liveExperiments.map((experiment) => (
-            <article
+          {liveExperiments.map((experiment, index) => (
+            <motion.article
               className="experiment-card"
               key={experiment.id}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...reveal, delay: 0.14 + index * 0.05 }}
+              whileHover={reduceMotion ? undefined : { y: -3 }}
             >
               <div>
                 <span>{experiment.code}</span>
@@ -785,10 +818,10 @@ function SectionView({
               <button onClick={onCase}>
                 OPEN CASE STUDY →
               </button>
-            </article>
+            </motion.article>
           ))}
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
     );
   }
 
@@ -798,14 +831,27 @@ function SectionView({
     );
 
     return (
-      <section className="content-section">
-        <p className="eyebrow">04 / NOTEBOOK</p>
+      <motion.section
+        className="content-section"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reveal}
+      >
+        <motion.p className="eyebrow" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.05 }}>
+          04 / NOTEBOOK
+        </motion.p>
 
-        <h2>The trace of thinking.</h2>
+        <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>The trace of thinking.</motion.h2>
 
-        <div className="notebook-list">
-          {visibleEntries.map((entry) => (
-            <article key={entry.id}>
+        <motion.div className="notebook-list" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
+          {visibleEntries.map((entry, index) => (
+            <motion.article
+              key={entry.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...reveal, delay: 0.14 + index * 0.05 }}
+              whileHover={reduceMotion ? undefined : { y: -2 }}
+            >
               <time>{entry.date}</time>
 
               <h3>{entry.title}</h3>
@@ -815,55 +861,69 @@ function SectionView({
               <span className="draft-status">
                 DRAFT / FULL NOTE PENDING
               </span>
-            </article>
+            </motion.article>
           ))}
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
     );
   }
 
   if (section === "archive") {
     return (
-      <section className="content-section archive">
-        <p className="eyebrow">05 / ARCHIVE</p>
+      <motion.section
+        className="content-section archive"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reveal}
+      >
+        <motion.p className="eyebrow" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.05 }}>
+          05 / ARCHIVE
+        </motion.p>
 
-        <h2>What remains useful.</h2>
+        <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>What remains useful.</motion.h2>
 
-        <p>
+        <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
           An evolving record of methods, references, experiments,
           and small tools that continue to influence the work.
-        </p>
+        </motion.p>
 
-        <div className="archive-stamp">
+        <motion.div className="archive-stamp" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.16 }}>
           ARCHIVE
           <br />
           <b>COLLECTING / CURATING</b>
           <br />
           WORK IN PROGRESS
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
     );
   }
 
   return (
-    <section className="content-section contact">
-      <p className="eyebrow">06 / CONTACT</p>
+    <motion.section
+      className="content-section contact"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reveal}
+    >
+      <motion.p className="eyebrow" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.05 }}>
+        06 / CONTACT
+      </motion.p>
 
-      <h2>Begin a signal.</h2>
+      <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>Begin a signal.</motion.h2>
 
-      <p>
+      <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
         If the question is interesting enough, let’s compare notes.
-      </p>
+      </motion.p>
 
-      <a href={`mailto:${profile.email}`}>
+      <motion.a href={`mailto:${profile.email}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.16 }} whileHover={reduceMotion ? undefined : { y: -2 }}>
         {profile.email} <span>↗</span>
-      </a>
+      </motion.a>
 
-      <div className="contact-meta">
+      <motion.div className="contact-meta" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.2 }}>
         <span>AVAILABILITY</span>
         <b>{profile.availability}</b>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }
 
@@ -873,13 +933,19 @@ function DiscoveryMap({
   onViriditas: () => void;
 }) {
   const [active, setActive] = useState<string | null>(null);
+  const reduceMotion = useReducedMotion();
 
   const current = discoveryNodes.find(
     (node) => node.id === active
   );
 
   return (
-    <div className="discovery">
+    <motion.div
+      className="discovery"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div>
         <p className="panel-label">
           KNOWLEDGE / DISCOVERY MAP
@@ -892,9 +958,14 @@ function DiscoveryMap({
         </p>
       </div>
 
-      <div className="map-canvas">
-        {discoveryNodes.map((node) => (
-          <button
+      <motion.div
+        className="map-canvas"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {discoveryNodes.map((node, index) => (
+          <motion.button
             style={{
               left: `${node.x}%`,
               top: `${node.y}%`,
@@ -915,13 +986,18 @@ function DiscoveryMap({
                 : ""
             }`}
             key={node.id}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.25, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={reduceMotion ? undefined : { y: -2 }}
+            whileFocus={reduceMotion ? undefined : { y: -2 }}
           >
             <i />
             {node.label}
-          </button>
+          </motion.button>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -930,6 +1006,7 @@ function Viriditas({
 }: {
   onBack: () => void;
 }) {
+  const reduceMotion = useReducedMotion();
   const topics = [
     {
       title: "THE QUESTION",
@@ -964,30 +1041,43 @@ function Viriditas({
   ];
 
   return (
-    <section className="case-study">
-      <button className="back" onClick={onBack}>
+    <motion.section
+      className="case-study"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <motion.button className="back" onClick={onBack} whileHover={reduceMotion ? undefined : { y: -2 }}>
         ← RETURN TO EXPERIMENTS
-      </button>
+      </motion.button>
 
-      <p className="eyebrow">EXP_001 / CASE STUDY</p>
+      <motion.p className="eyebrow" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ... (reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }), delay: 0.05 }}>
+        EXP_001 / CASE STUDY
+      </motion.p>
 
-      <h2>VIRIDITAS</h2>
+      <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ... (reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }), delay: 0.08 }}>VIRIDITAS</motion.h2>
 
-      <p className="case-dek">
+      <motion.p className="case-dek" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ... (reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }), delay: 0.12 }}>
         A research record for a computer-vision investigation.
         Verified documentation will be added as the study is
         prepared for publication.
-      </p>
+      </motion.p>
 
-      <div className="case-meta">
+      <motion.div className="case-meta" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ... (reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }), delay: 0.16 }}>
         <span>DOMAIN / COMPUTER VISION</span>
         <span>STATE / DOCUMENTING</span>
         <span>METHOD / IN REVIEW</span>
-      </div>
+      </motion.div>
 
-      <div className="case-grid">
+      <motion.div className="case-grid" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ... (reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }), delay: 0.2 }}>
         {topics.map((topic, index) => (
-          <article key={topic.title}>
+          <motion.article
+            key={topic.title}
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ... (reduceMotion ? { duration: 0 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }), delay: 0.22 + index * 0.05 }}
+            whileHover={reduceMotion ? undefined : { y: -2 }}
+          >
             <span>0{index + 1}</span>
 
             <h3>{topic.title}</h3>
@@ -999,10 +1089,10 @@ function Viriditas({
             >
               {topic.body}
             </p>
-          </article>
+          </motion.article>
         ))}
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }
 
