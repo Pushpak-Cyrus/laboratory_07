@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./profile.css";
+import "./polish.css";
 
 export const metadata: Metadata = { title: "LABORATORY_07 — THE EXPERIMENT", description: "A personal research laboratory." };
 

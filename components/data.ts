@@ -9,14 +9,14 @@ export const profile = {
 
 export const experiments = [
   { id: "viriditas", code: "EXP_001", title: "VIRIDITAS", type: "Computer vision / research", summary: "A study in seeing the living world more clearly.", tags: ["Vision", "Data", "Ecology"], status: "ACTIVE" },
-  { id: "future-02", code: "EXP_002", title: "UNNAMED SIGNAL", type: "Future experiment", summary: "Reserve this space for a project that is still becoming.", tags: ["Systems", "Prototype"], status: "DORMANT" },
-  { id: "future-03", code: "EXP_003", title: "FIELD NOTES", type: "Future experiment", summary: "A place for a personal tool, exploration, or collaboration.", tags: ["Creative tech"], status: "DORMANT" },
+  { id: "future-02", code: "EXP_002", title: "UNNAMED SIGNAL", type: "Future experiment", summary: "", tags: ["Systems", "Prototype"], status: "DRAFT", visible: false },
+  { id: "future-03", code: "EXP_003", title: "FIELD NOTES", type: "Future experiment", summary: "", tags: ["Creative tech"], status: "DRAFT", visible: false },
 ];
 
 export const notebookEntries = [
-  { date: "IN PROGRESS", title: "Observation before optimization", excerpt: "A useful system begins by seeing the problem clearly enough to ask a better question." },
-  { date: "IN PROGRESS", title: "What failure teaches", excerpt: "Failed experiments are not discarded; they become evidence for the next decision." },
-  { date: "IN PROGRESS", title: "Signal / noise", excerpt: "The practice is separating a compelling idea from an idea that can survive contact with data." },
+  { id: "observation-before-optimization", date: "DRAFT", title: "Observation before optimization", excerpt: "", visible: false },
+  { id: "what-failure-teaches", date: "DRAFT", title: "What failure teaches", excerpt: "The full note is being prepared.", visible: true, published: false },
+  { id: "signal-noise", date: "DRAFT", title: "Signal / noise", excerpt: "", visible: false },
 ];
 
 export const discoveryNodes = [
