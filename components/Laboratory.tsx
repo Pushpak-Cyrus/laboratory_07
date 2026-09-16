@@ -358,15 +358,21 @@ function Entry({
   const [focus, setFocus] = useState<"AI" | "VISION" | "DATA" | "SYSTEMS" | "CREATE" | null>(null);
   const activeDomain = focus ? researchDomains.find((domain) => domain.id === focus) ?? null : null;
 
-  // The "SCROLL TO INITIATE" cue is a real affordance, not decoration —
-  // a deliberate scroll or swipe down from the entry screen enters the lab,
-  // same as clicking the button.
+  // "SCROLL TO INITIATE" should only fire once there's nothing left to
+  // scroll — a continuation gesture past the end of the content, not a
+  // hijack of ordinary scrolling (the entry screen's own nav list needs
+  // real scroll room on mobile).
   useEffect(() => {
+    const nearBottom = () => {
+      const doc = document.documentElement;
+      return window.innerHeight + window.scrollY >= doc.scrollHeight - 4;
+    };
+
     let touchStartY: number | null = null;
     const threshold = 40;
 
     const handleWheel = (event: WheelEvent) => {
-      if (event.deltaY > threshold) onEnter();
+      if (event.deltaY > threshold && nearBottom()) onEnter();
     };
 
     const handleTouchStart = (event: TouchEvent) => {
@@ -376,7 +382,7 @@ function Entry({
     const handleTouchMove = (event: TouchEvent) => {
       if (touchStartY === null) return;
       const currentY = event.touches[0]?.clientY ?? touchStartY;
-      if (touchStartY - currentY > threshold) onEnter();
+      if (touchStartY - currentY > threshold && nearBottom()) onEnter();
     };
 
     window.addEventListener("wheel", handleWheel, { passive: true });
