@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import {
   discoveryNodes,
   experiments,
@@ -39,6 +39,46 @@ function isSection(value: string): value is Section {
 
 function mark(text: string) {
   return <span className="mark">{text}</span>;
+}
+
+function MagneticButton({
+  children,
+  className,
+  onClick,
+  reduceMotion,
+}: {
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+  reduceMotion: boolean | null;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (event: ReactMouseEvent<HTMLButtonElement>) => {
+    if (reduceMotion || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const relX = event.clientX - (rect.left + rect.width / 2);
+    const relY = event.clientY - (rect.top + rect.height / 2);
+    setOffset({ x: relX * 0.22, y: relY * 0.3 });
+  };
+
+  const handleMouseLeave = () => setOffset({ x: 0, y: 0 });
+
+  return (
+    <motion.button
+      ref={ref}
+      type="button"
+      className={className}
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      animate={{ x: offset.x, y: offset.y }}
+      transition={{ type: "spring", stiffness: 150, damping: 14, mass: 0.4 }}
+    >
+      {children}
+    </motion.button>
+  );
 }
 
 function ResearchTrail({ trail }: { trail: string[] }) {
@@ -357,6 +397,7 @@ function Entry({
 }) {
   const [focus, setFocus] = useState<"AI" | "VISION" | "DATA" | "SYSTEMS" | "CREATE" | null>(null);
   const activeDomain = focus ? researchDomains.find((domain) => domain.id === focus) ?? null : null;
+  const reduceMotion = useReducedMotion();
 
   // "SCROLL TO INITIATE" should only fire once there's nothing left to
   // scroll — a continuation gesture past the end of the content, not a
@@ -478,14 +519,15 @@ function Entry({
             reveal how ideas move from observation into form.
           </p>
 
-          <button
+          <MagneticButton
             className="enter-button"
             onClick={onEnter}
+            reduceMotion={reduceMotion}
           >
             <span>ENTER LABORATORY</span>
             <kbd>E</kbd>
             <i>→</i>
-          </button>
+          </MagneticButton>
 
           <p className="scroll-cue">
             SCROLL TO INITIATE <span>↓</span>
@@ -785,7 +827,7 @@ function SectionView({
   onNavigate: (section: Section) => void;
 }) {
   const [selectedStep, setSelectedStep] = useState(0);
-  const [copied, setCopied] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "copying" | "copied">("idle");
   const reduceMotion = useReducedMotion();
   const reveal = reduceMotion
     ? { duration: 0 }
@@ -974,7 +1016,7 @@ function SectionView({
           03 / EXPERIMENTS
         </motion.p>
 
-        <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>Questions given form.</motion.h2>
+        <motion.h2 style={{ overflow: "hidden" }} initial={{ clipPath: "inset(0% 100% 0% 0%)" }} animate={{ clipPath: "inset(0% 0% 0% 0%)" }} transition={{ ...reveal, delay: 0.08 }}>Questions given form.</motion.h2>
 
         <motion.div
           className={`experiment-grid ${
@@ -1038,7 +1080,7 @@ function SectionView({
           04 / NOTEBOOK
         </motion.p>
 
-        <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>The trace of thinking.</motion.h2>
+        <motion.h2 style={{ overflow: "hidden" }} initial={{ clipPath: "inset(0% 100% 0% 0%)" }} animate={{ clipPath: "inset(0% 0% 0% 0%)" }} transition={{ ...reveal, delay: 0.08 }}>The trace of thinking.</motion.h2>
 
         <motion.div className="notebook-list" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
           {visibleEntries.map((entry, index) => (
@@ -1077,7 +1119,7 @@ function SectionView({
           05 / ARCHIVE
         </motion.p>
 
-        <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>What remains useful.</motion.h2>
+        <motion.h2 style={{ overflow: "hidden" }} initial={{ clipPath: "inset(0% 100% 0% 0%)" }} animate={{ clipPath: "inset(0% 0% 0% 0%)" }} transition={{ ...reveal, delay: 0.08 }}>What remains useful.</motion.h2>
 
         <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
           An evolving record of methods, references, experiments,
@@ -1126,21 +1168,29 @@ function SectionView({
 
         <motion.button
           type="button"
-          className="copy-email"
+          className={`copy-email copy-email--${copyState}`}
+          disabled={copyState !== "idle"}
           onClick={async () => {
+            setCopyState("copying");
             try {
               await navigator.clipboard.writeText(profile.email);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
+              setCopyState("copied");
             } catch {
               /* clipboard unavailable — mailto link above still works */
+              setCopyState("idle");
+              return;
             }
+            setTimeout(() => setCopyState("idle"), 2000);
           }}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...settle, delay: 0.19 }}
         >
-          {copied ? "COPIED ✓" : "COPY EMAIL"}
+          {copyState === "copied"
+            ? "COPIED ✓"
+            : copyState === "copying"
+            ? "COPYING…"
+            : "COPY EMAIL"}
         </motion.button>
       </div>
 
@@ -1322,7 +1372,7 @@ function Viriditas({
         EXP_001 / CASE STUDY
       </motion.p>
 
-      <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ... (reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }), delay: 0.08 }}>VIRIDITAS</motion.h2>
+      <motion.h2 style={{ overflow: "hidden" }} initial={{ clipPath: "inset(0% 100% 0% 0%)" }} animate={{ clipPath: "inset(0% 0% 0% 0%)" }} transition={{ ...(reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }), delay: 0.08 }}>VIRIDITAS</motion.h2>
 
       <motion.p className="case-dek" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ... (reduceMotion ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }), delay: 0.12 }}>
         A research record for a computer-vision investigation.
