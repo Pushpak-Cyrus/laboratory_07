@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { profile } from "../../components/data";
 
 // Very small in-memory rate limit: max 5 submissions per IP per hour.
 // Resets on redeploy / cold start — acceptable for a low-traffic personal
@@ -75,11 +74,20 @@ export async function POST(request: Request) {
       );
     }
 
+    const contactEmail = process.env.CONTACT_EMAIL;
+    if (!contactEmail) {
+      console.error("CONTACT_EMAIL is not set");
+      return NextResponse.json(
+        { error: "Message recipient is not configured." },
+        { status: 500 }
+      );
+    }
+
     const resend = new Resend(apiKey);
 
     const { error } = await resend.emails.send({
       from: "LABORATORY_07 <onboarding@resend.dev>",
-      to: profile.email,
+      to: contactEmail,
       replyTo: email,
       subject: `New transmission from ${name}`,
       text: `${message}\n\n—\nFrom: ${name} <${email}>`,

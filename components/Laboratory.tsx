@@ -1194,6 +1194,11 @@ function SectionView({
         </motion.button>
       </div>
 
+      <motion.div className="transmission-wrap" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ ...settle, delay: 0.2 }}>
+        <p className="panel-label">OR SEND A DIRECT TRANSMISSION</p>
+        <ContactForm />
+      </motion.div>
+
       <motion.div className="contact-secondary" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ ...settle, delay: 0.22 }}>
         <p className="panel-label">OTHER CHANNELS</p>
 
@@ -1526,6 +1531,133 @@ function Terminal({
         />
       </form>
     </motion.aside>
+  );
+}
+
+function ContactForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [company, setCompany] = useState(""); // honeypot — left empty by humans
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle"
+  );
+  const [errorText, setErrorText] = useState("");
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (status === "sending") return;
+
+    setStatus("sending");
+    setErrorText("");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message, company }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setStatus("error");
+        setErrorText(data.error ?? "Something went wrong. Try again.");
+        return;
+      }
+
+      setStatus("sent");
+      setName("");
+      setEmail("");
+      setMessage("");
+    } catch {
+      setStatus("error");
+      setErrorText("Network error — check your connection and try again.");
+    }
+  };
+
+  if (status === "sent") {
+    return (
+      <div className="transmission-sent">
+        <p className="panel-label">TRANSMISSION RECEIVED</p>
+        <p>Thanks — that's landed in the inbox. I'll get back to you.</p>
+        <button
+          type="button"
+          className="text-button"
+          onClick={() => setStatus("idle")}
+        >
+          Send another <b>↘</b>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form className="transmission-form" onSubmit={handleSubmit}>
+      <div className="transmission-field">
+        <label htmlFor="contact-name">NAME</label>
+        <input
+          id="contact-name"
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          required
+          maxLength={200}
+          disabled={status === "sending"}
+        />
+      </div>
+
+      <div className="transmission-field">
+        <label htmlFor="contact-email">EMAIL</label>
+        <input
+          id="contact-email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+          maxLength={200}
+          disabled={status === "sending"}
+        />
+      </div>
+
+      <div className="transmission-field">
+        <label htmlFor="contact-message">MESSAGE</label>
+        <textarea
+          id="contact-message"
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          required
+          rows={5}
+          maxLength={5000}
+          disabled={status === "sending"}
+        />
+      </div>
+
+      {/* Honeypot — hidden from real users via CSS, bots fill every field they find */}
+      <div className="transmission-honeypot" aria-hidden="true">
+        <label htmlFor="contact-company">Company</label>
+        <input
+          id="contact-company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={company}
+          onChange={(event) => setCompany(event.target.value)}
+        />
+      </div>
+
+      {status === "error" && (
+        <p className="transmission-error">{errorText}</p>
+      )}
+
+      <button
+        type="submit"
+        className="transmission-submit"
+        disabled={status === "sending"}
+      >
+        {status === "sending" ? "SENDING…" : "SEND TRANSMISSION"}
+      </button>
+    </form>
   );
 }
 
