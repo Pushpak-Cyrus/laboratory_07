@@ -33,6 +33,10 @@ const navLabels = {
 
 type Section = (typeof nav)[number];
 
+function isSection(value: string): value is Section {
+  return (nav as readonly string[]).includes(value);
+}
+
 function mark(text: string) {
   return <span className="mark">{text}</span>;
 }
@@ -93,12 +97,44 @@ export function Laboratory() {
     });
   };
 
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (isSection(hash)) {
+      setEntered(true);
+      setHasNavigated(true);
+      setSection(hash);
+      setTrail(["ENTRY", hash.toUpperCase()]);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (isSection(hash)) {
+        setEntered(true);
+        setHasNavigated(true);
+        setSection(hash);
+      } else {
+        setEntered(false);
+        setHasNavigated(false);
+        setTrail(["ENTRY"]);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const go = (next: Section) => {
     setSection(next);
     setCaseStudy(false);
     setHasNavigated(true);
     addTrail(next.toUpperCase());
     addEvent("SECTION", `${next.toUpperCase()} ACCESSED`);
+
+    if (window.location.hash !== `#${next}`) {
+      window.history.pushState(null, "", `#${next}`);
+    }
 
     setTimeout(() => {
       sectionRef.current?.scrollIntoView({
@@ -146,15 +182,32 @@ export function Laboratory() {
     }
   }, [terminalOpen]);
 
+  const enterLab = () => {
+    setEntered(true);
+    if (!window.location.hash) {
+      window.history.pushState(null, "", `#${section}`);
+    }
+  };
+
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === "e" && !entered) {
-        setEntered(true);
-      }
+      const target = event.target as HTMLElement | null;
+      const isTyping =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
 
       if (event.key === "Escape") {
         setTerminalOpen(false);
         setStatusOpen(false);
+        return;
+      }
+
+      if (isTyping) return;
+
+      if (event.key.toLowerCase() === "e" && !entered) {
+        enterLab();
       }
 
       if (event.key.toLowerCase() === "t" && entered) {
@@ -175,7 +228,7 @@ export function Laboratory() {
         {!entered ? (
           <Entry
             key="entry"
-            onEnter={() => setEntered(true)}
+            onEnter={enterLab}
             onNavigate={(next) => {
               setEntered(true);
               setHasNavigated(true);
@@ -210,6 +263,7 @@ export function Laboratory() {
                 setEntered(false);
                 setHasNavigated(false);
                 setTrail(["ENTRY"]);
+                window.history.pushState(null, "", window.location.pathname + window.location.search);
               }}
             />
 
@@ -303,6 +357,38 @@ function Entry({
 }) {
   const [focus, setFocus] = useState<"AI" | "VISION" | "DATA" | "SYSTEMS" | "CREATE" | null>(null);
   const activeDomain = focus ? researchDomains.find((domain) => domain.id === focus) ?? null : null;
+
+  // The "SCROLL TO INITIATE" cue is a real affordance, not decoration —
+  // a deliberate scroll or swipe down from the entry screen enters the lab,
+  // same as clicking the button.
+  useEffect(() => {
+    let touchStartY: number | null = null;
+    const threshold = 40;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (event.deltaY > threshold) onEnter();
+    };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      touchStartY = event.touches[0]?.clientY ?? null;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (touchStartY === null) return;
+      const currentY = event.touches[0]?.clientY ?? touchStartY;
+      if (touchStartY - currentY > threshold) onEnter();
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [onEnter]);
 
   return (
     <motion.section
@@ -677,7 +763,7 @@ function Header({
         className="terminal-toggle"
         onClick={onTerminal}
       >
-        TERMINAL <span>⌘T</span>
+        TERMINAL <span>[T]</span>
       </button>
     </header>
   );
