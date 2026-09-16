@@ -66,6 +66,7 @@ export function Laboratory() {
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [caseStudy, setCaseStudy] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
+  const [showTerminalHint, setShowTerminalHint] = useState(false);
   const [trail, setTrail] = useState<string[]>(["ENTRY"]);
   const [sessionEvents, setSessionEvents] = useState<SessionEvent[]>([
     { time: "20:41", type: "SYSTEM", message: "SESSION INITIALIZED" },
@@ -106,6 +107,44 @@ export function Laboratory() {
       });
     }, 20);
   };
+
+  useEffect(() => {
+    if (!entered) return;
+
+    let seen = false;
+    try {
+      seen = window.localStorage.getItem("lab07-terminal-hint-seen") === "1";
+    } catch {
+      /* localStorage unavailable — skip the hint rather than break entry */
+    }
+
+    if (seen) return;
+
+    const showTimer = setTimeout(() => setShowTerminalHint(true), 3200);
+    const hideTimer = setTimeout(() => {
+      setShowTerminalHint(false);
+      try {
+        window.localStorage.setItem("lab07-terminal-hint-seen", "1");
+      } catch {
+        /* ignore */
+      }
+    }, 9200);
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [entered]);
+
+  useEffect(() => {
+    if (!terminalOpen) return;
+    setShowTerminalHint(false);
+    try {
+      window.localStorage.setItem("lab07-terminal-hint-seen", "1");
+    } catch {
+      /* ignore */
+    }
+  }, [terminalOpen]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -223,6 +262,24 @@ export function Laboratory() {
             onClose={() => setTerminalOpen(false)}
             onNavigate={go}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showTerminalHint && !terminalOpen && (
+          <motion.button
+            type="button"
+            className="terminal-hint"
+            onClick={() => {
+              setTerminalOpen(true);
+              setShowTerminalHint(false);
+            }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+          >
+            TRY THE TERMINAL — PRESS <kbd>T</kbd>
+          </motion.button>
         )}
       </AnimatePresence>
     </main>
@@ -636,10 +693,18 @@ function SectionView({
   onNavigate: (section: Section) => void;
 }) {
   const [selectedStep, setSelectedStep] = useState(0);
+  const [copied, setCopied] = useState(false);
   const reduceMotion = useReducedMotion();
   const reveal = reduceMotion
     ? { duration: 0 }
     : { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const };
+
+  // Contact is the end of the session, not another discovery — give it a
+  // slower, smaller-motion settle instead of the same reveal as every
+  // other section.
+  const settle = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const };
 
   if (section === "profile") {
     return (
@@ -941,32 +1006,53 @@ function SectionView({
   return (
     <motion.section
       className="content-section contact"
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={reveal}
+      transition={settle}
     >
-      <motion.p className="eyebrow" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.05 }}>
+      <motion.p className="eyebrow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ ...settle, delay: 0.04 }}>
         06 / CONTACT
       </motion.p>
 
-      <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.08 }}>Begin a signal.</motion.h2>
+      <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ ...settle, delay: 0.08 }}>Begin a signal.</motion.h2>
 
-      <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.12 }}>
+      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ ...settle, delay: 0.12 }}>
         If the question is interesting enough, let’s compare notes.
       </motion.p>
 
-      <motion.a
-        className="contact-email"
-        href={`mailto:${profile.email}`}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...reveal, delay: 0.16 }}
-        whileHover={reduceMotion ? undefined : { y: -2 }}
-      >
-        {profile.email} <span>↗</span>
-      </motion.a>
+      <div className="contact-email-row">
+        <motion.a
+          className="contact-email"
+          href={`mailto:${profile.email}`}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...settle, delay: 0.16 }}
+          whileHover={reduceMotion ? undefined : { y: -2 }}
+        >
+          {profile.email} <span>↗</span>
+        </motion.a>
 
-      <motion.div className="contact-secondary" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.18 }}>
+        <motion.button
+          type="button"
+          className="copy-email"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(profile.email);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            } catch {
+              /* clipboard unavailable — mailto link above still works */
+            }
+          }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...settle, delay: 0.19 }}
+        >
+          {copied ? "COPIED ✓" : "COPY EMAIL"}
+        </motion.button>
+      </div>
+
+      <motion.div className="contact-secondary" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ ...settle, delay: 0.22 }}>
         <p className="panel-label">OTHER CHANNELS</p>
 
         <a
@@ -1002,7 +1088,7 @@ function SectionView({
         </a>
       </motion.div>
 
-      <motion.div className="contact-meta" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...reveal, delay: 0.22 }}>
+      <motion.div className="contact-meta" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ ...settle, delay: 0.26 }}>
         <div className="contact-meta-row">
           <span>STATUS</span>
           <b>{profile.availability}</b>
